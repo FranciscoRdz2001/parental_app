@@ -110,13 +110,19 @@ class AppSnackbars {
                   children: [
                     Text(
                       title,
-                      style: AppStyles.w600(14),
+                      style: AppStyles.w600(
+                        14,
+                        Theme.of(context).textTheme.labelLarge?.color,
+                      ),
                     ),
                     SizedBox(height: description != null ? 4 : 0),
                     if (description != null)
                       Text(
                         description,
-                        style: AppStyles.w400(12),
+                        style: AppStyles.w400(
+                          12,
+                          Theme.of(context).textTheme.labelLarge?.color,
+                        ),
                       )
                   ],
                 ),

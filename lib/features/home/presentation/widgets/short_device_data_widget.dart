@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:parental_app/core/app/data/mocked_data.dart';
 import 'package:parental_app/core/app/theme/app_colors.dart';
-import 'package:parental_app/core/utils/app_dialogs_util.dart';
 import 'package:parental_app/core/utils/app_styes_util.dart';
+import 'package:parental_app/domain/models/apps/user_activity_model.dart';
 import 'package:parental_app/features/home/presentation/widgets/circle_image_widget.dart';
 
 class ShortDeviceDataWidget extends StatelessWidget {
-  final int index;
-  const ShortDeviceDataWidget({super.key, required this.index});
+  final UserActivityModel userActivity;
+  const ShortDeviceDataWidget({super.key, required this.userActivity});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
-        AppDialogs.showDeviceData(context);
+        // AppDialogs.showDeviceData(context);
       },
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,15 +28,17 @@ class ShortDeviceDataWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        MockedData.usersNames[index],
+                        userActivity.name,
                         style: AppStyles.w600(14),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Text(
-                      MockedData.devicesNames[index],
-                      style: AppStyles.w400(12, AppColors.gray),
-                    ),
+                    if (userActivity.deviceName != null) ...[
+                      const SizedBox(width: 16),
+                      Text(
+                        userActivity.deviceName!,
+                        style: AppStyles.w400(12, AppColors.gray),
+                      ),
+                    ]
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -45,7 +46,7 @@ class ShortDeviceDataWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        '01:30 de uso',
+                        '${userActivity.time} de uso',
                         style: AppStyles.w400(12, AppColors.gray),
                       ),
                     ),

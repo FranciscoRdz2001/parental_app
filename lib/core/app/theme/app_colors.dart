@@ -8,7 +8,11 @@ class AppColors {
   static const Color darkBackgroundColor = Color(0xff171617);
   static const Color placeHolderColor = Color(0xfff2f3f4);
   static const Color containersBgColor = Color(0xfff6f6f9);
+  static const Color containersBgColorHighlight =
+      Color.fromARGB(255, 243, 243, 243);
   static const Color darkContainersBgColor = Color(0xff252524);
+  static const Color darkContainersBgColorHighlight =
+      Color.fromARGB(255, 46, 46, 45);
   static const Color darKLinesColor = Color.fromARGB(255, 26, 26, 25);
   static const Color placeHolderHighlighColor =
       Color.fromARGB(255, 227, 227, 227);

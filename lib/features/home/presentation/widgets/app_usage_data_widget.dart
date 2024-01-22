@@ -1,19 +1,25 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:parental_app/core/app/theme/app_colors.dart';
 import 'package:parental_app/core/utils/app_dialogs_util.dart';
 import 'package:parental_app/core/utils/app_styes_util.dart';
+import 'package:parental_app/core/utils/app_utils.dart';
 import 'package:parental_app/features/home/presentation/widgets/circle_image_widget.dart';
 import 'package:parental_app/features/home/presentation/widgets/circle_status_widget.dart';
 
 class AppUsageDataWidget extends StatelessWidget {
-  final String appName;
   final bool isUserApp;
+  final String appName;
+  final String package;
+  final int totalTime;
+  final int? devices;
+
   const AppUsageDataWidget({
     super.key,
-    required this.appName,
     this.isUserApp = false,
+    required this.appName,
+    required this.totalTime,
+    required this.package,
+    this.devices,
   });
 
   @override
@@ -21,7 +27,11 @@ class AppUsageDataWidget extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
-        AppDialogs.showAppDetails(context, appName: appName);
+        AppDialogs.showAppDetails(
+          context,
+          appName: appName,
+          package: package,
+        );
       },
       child: Padding(
         padding: const EdgeInsets.all(8),
@@ -53,14 +63,14 @@ class AppUsageDataWidget extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          '1 hora 30 minutos',
+                          AppUtils.instance.totalTimeString(totalTime),
                           style: AppStyles.w400(12, AppColors.gray),
                         ),
                       ),
-                      if (!isUserApp) ...[
+                      if (!isUserApp && devices != null) ...[
                         const SizedBox(width: 16),
                         Text(
-                          '${Random().nextInt(8)} dispositivos',
+                          '$devices dispositivos',
                           style: AppStyles.w400(12, AppColors.gray),
                         ),
                       ],

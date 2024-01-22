@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:parental_app/core/app/blocs/base/screen_base_bloc.dart';
 import 'package:parental_app/core/app/theme/app_colors.dart';
 import 'package:parental_app/core/app/widgets/custom_button_widget.dart';
 import 'package:parental_app/core/navigator/app_navigator.dart';
 import 'package:parental_app/core/utils/app_snackbars_util.dart';
 import 'package:parental_app/core/utils/app_styes_util.dart';
-import 'package:parental_app/features/all_apps/presentation/routes/all_apps_routes.dart';
+import 'package:parental_app/core/utils/app_utils.dart';
+import 'package:parental_app/domain/models/childs/child_data_model.dart';
+import 'package:parental_app/features/all_apps/presentation/pages/all_apps_page.dart';
+import 'package:parental_app/features/home/presentation/blocs/requests/params/request_action_params.dart';
+import 'package:parental_app/features/home/presentation/blocs/requests/request_actions_bloc.dart';
 import 'package:parental_app/features/home/presentation/widgets/circle_image_widget.dart';
 import 'package:parental_app/features/home/presentation/widgets/circle_status_widget.dart';
 
 class DeviceDataDialog extends StatelessWidget {
-  const DeviceDataDialog({super.key});
+  final ChildDataModel child;
+  const DeviceDataDialog({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -31,14 +38,14 @@ class DeviceDataDialog extends StatelessWidget {
                 const CircleStatusWidget(),
                 const SizedBox(width: 4),
                 Text(
-                  'Veni Pantoja',
+                  child.name,
                   style: AppStyles.w600(16),
                 ),
               ],
             ),
             const SizedBox(height: 4),
             Text(
-              'iPhone 12 Pro Max',
+              child.deviceName,
               style: AppStyles.w400(12, AppColors.gray),
             ),
             const SizedBox(height: 16),
@@ -70,7 +77,7 @@ class DeviceDataDialog extends StatelessWidget {
                       ),
                       const SizedBox(width: 16),
                       Text(
-                        '16 horas',
+                        AppUtils.instance.totalTimeString(child.totalTime),
                         style: AppStyles.w400(12, AppColors.gray),
                       ),
                     ],
@@ -86,7 +93,7 @@ class DeviceDataDialog extends StatelessWidget {
                       ),
                       const SizedBox(width: 16),
                       Text(
-                        '5',
+                        child.appCount.toString(),
                         style: AppStyles.w400(12, AppColors.gray),
                       ),
                     ],
@@ -116,22 +123,43 @@ class DeviceDataDialog extends StatelessWidget {
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomButtonWidget(
-              text: 'Ver todas las aplicaciones',
-              onTap: () {
-                NavigatorRouter.pushNamed(AllAppsRoutes.home);
+            BlocListener<RequestActionsBloc, BaseScreenState<int>>(
+              listener: (context, state) {
+                if (state.status.isLoaded) {
+                  NavigatorRouter.pop();
+                  AppSnackbars.success(
+                    context,
+                    message: 'Dispositivo desvinculado',
+                    description:
+                        'El dispositivo de ${child.name} ha sido desvinculado',
+                  );
+                }
               },
+              child: BlocBuilder<RequestActionsBloc, BaseScreenState<int>>(
+                builder: (context, state) {
+                  return CustomButtonWidget(
+                    text: 'Ver todas las aplicaciones',
+                    isLoading: state.status.isLoading,
+                    onTap: () {
+                      NavigatorRouter.pushReplacement(
+                        AllAppsPage(child: child),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 8),
             InkWell(
               onTap: () {
-                NavigatorRouter.pop();
-                AppSnackbars.success(
-                  context,
-                  message: 'Dispositivo desvinculado',
-                  description:
-                      'El dispositivo se ha desvinculado correctamente',
-                );
+                context.read<RequestActionsBloc>().add(
+                      CallAction(
+                        params: RequestActionParams(
+                          uuid: child.uuid,
+                          isAccept: false,
+                        ),
+                      ),
+                    );
               },
               child: Text(
                 'Desvincular',

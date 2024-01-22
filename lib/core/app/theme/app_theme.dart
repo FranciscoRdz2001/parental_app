@@ -12,6 +12,7 @@ class AppTheme {
         colorScheme: const ColorScheme.light(
           primary: AppColors.primaryColor,
           surface: AppColors.containersBgColor,
+          secondary: AppColors.containersBgColorHighlight,
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: AppColors.primaryColor,
@@ -72,6 +73,7 @@ class AppTheme {
         colorScheme: const ColorScheme.dark(
           primary: AppColors.primaryDarkColor,
           surface: AppColors.darkContainersBgColor,
+          secondary: AppColors.darkContainersBgColorHighlight,
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: AppColors.darkBackgroundColor,

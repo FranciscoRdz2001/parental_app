@@ -36,6 +36,7 @@ class CustomScaffoldWidget extends StatelessWidget {
         ),
       ),
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         extendBody: true,
         persistentFooterButtons: [
           if (persistentFooterButton != null) persistentFooterButton!,

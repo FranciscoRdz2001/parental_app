@@ -1,5 +1,6 @@
 package com.example.parental_app
 
+import android.annotation.SuppressLint
 import android.app.usage.UsageStatsManager
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -51,7 +52,9 @@ class MainActivity: FlutterActivity() {
                 }
             }
             mapOf(
-                "name" to  name
+                "name" to  name,
+                "packageName" to app?.packageName,
+                "time" to e.lastTimeForegroundServiceUsed,
             )
         }
         result.success(data)

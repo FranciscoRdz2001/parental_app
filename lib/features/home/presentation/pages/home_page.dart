@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:parental_app/core/app/data/mocked_data.dart';
+import 'package:parental_app/core/app/data/global_data.dart';
 import 'package:parental_app/core/app/theme/app_colors.dart';
 import 'package:parental_app/core/app/widgets/custom_app_name.dart';
-import 'package:parental_app/core/app/widgets/custom_button_widget.dart';
 import 'package:parental_app/core/app/widgets/custom_scaffold_widget.dart';
-import 'package:parental_app/core/utils/app_dialogs_util.dart';
 import 'package:parental_app/core/utils/app_styes_util.dart';
-import 'package:parental_app/features/home/presentation/widgets/app_usage_data_widget.dart';
-import 'package:parental_app/features/home/presentation/widgets/device_data_widget.dart';
+import 'package:parental_app/features/home/presentation/widgets/most_used_apps_data_widget.dart';
+import 'package:parental_app/features/home/presentation/widgets/parent_childs_list_widget.dart';
 import 'package:parental_app/features/home/presentation/widgets/sync_request_widget.dart';
 
 class HomePage extends StatelessWidget {
@@ -16,12 +14,6 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomScaffoldWidget(
-      persistentFooterButton: CustomButtonWidget(
-        text: 'Agregar dispositivo',
-        onTap: () {
-          AppDialogs.addDevice(context);
-        },
-      ),
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -47,10 +39,13 @@ class HomePage extends StatelessWidget {
                     text: TextSpan(
                       text: 'Bienvenido ',
                       style: AppStyles.w400(
-                          16, Theme.of(context).textTheme.bodyLarge?.color),
+                        16,
+                        Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
                       children: [
                         TextSpan(
-                          text: 'Francisco Rodríguez',
+                          text: GlobalData.instance.user?.fullName ??
+                              'Sin nombre',
                           style: AppStyles.w600(16),
                         ),
                       ],
@@ -70,48 +65,19 @@ class HomePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SyncRequestWidget(),
-                const SizedBox(height: 16),
                 Text(
                   'Dispositivos',
                   style: AppStyles.w600(14),
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  height: 120,
-                  child: ListView.separated(
-                    clipBehavior: Clip.none,
-                    shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: MockedData.devicesNames.length,
-                    itemBuilder: (context, x) {
-                      return DeviceDataWidget(index: x);
-                    },
-                    separatorBuilder: (_, x) {
-                      return const SizedBox(width: 16);
-                    },
-                  ),
-                ),
+                const ParentChildListWidget(),
                 const SizedBox(height: 16),
                 Text(
                   'Aplicaciones mas usadas',
                   style: AppStyles.w600(14),
                 ),
                 const SizedBox(height: 16),
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  scrollDirection: Axis.vertical,
-                  itemCount: MockedData.appNames.length,
-                  itemBuilder: (context, x) {
-                    return AppUsageDataWidget(
-                      appName: MockedData.appNames[x],
-                    );
-                  },
-                  separatorBuilder: (_, x) {
-                    return const SizedBox(height: 16);
-                  },
-                ),
+                const MostUsedAppsDataWidget(),
                 const SizedBox(height: 16),
               ],
             ),

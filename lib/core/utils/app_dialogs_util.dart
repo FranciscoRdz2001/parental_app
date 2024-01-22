@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:parental_app/core/utils/screen_sizer_util.dart';
+import 'package:parental_app/domain/models/childs/child_data_model.dart';
 import 'package:parental_app/features/home/presentation/widgets/dialogs/add_kid_dialog.dart';
 import 'package:parental_app/features/home/presentation/widgets/dialogs/app_data_dialog.dart';
 import 'package:parental_app/features/home/presentation/widgets/dialogs/device_data_dialog.dart';
@@ -40,16 +41,20 @@ class AppDialogs {
     );
   }
 
-  static void showDeviceData(BuildContext context) {
+  static void showDeviceData(
+    BuildContext context, {
+    required ChildDataModel child,
+  }) {
     return _baseDialog(
       context,
-      content: const DeviceDataDialog(),
+      content: DeviceDataDialog(child: child),
     );
   }
 
   static void showAppDetails(
     BuildContext context, {
     required String appName,
+    required String package,
   }) {
     final sizer = ScreenSizer.of(context);
     return _baseDialog(
@@ -59,6 +64,7 @@ class AppDialogs {
       ),
       content: AppDataDialog(
         appName: appName,
+        package: package,
       ),
     );
   }
@@ -70,10 +76,12 @@ class AppDialogs {
     );
   }
 
-  static void syncRequest(BuildContext context) {
+  static void syncRequest(BuildContext context, {required String uuid}) {
     return _baseDialog(
       context,
-      content: const SyncRequestDialog(),
+      content: SyncRequestDialog(
+        uuid: uuid,
+      ),
     );
   }
 }

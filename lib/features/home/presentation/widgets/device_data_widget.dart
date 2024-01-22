@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:parental_app/core/app/data/mocked_data.dart';
 import 'package:parental_app/core/app/theme/app_colors.dart';
 import 'package:parental_app/core/utils/app_dialogs_util.dart';
 import 'package:parental_app/core/utils/app_styes_util.dart';
+import 'package:parental_app/core/utils/app_utils.dart';
 import 'package:parental_app/core/utils/screen_sizer_util.dart';
+import 'package:parental_app/domain/models/childs/child_data_model.dart';
 import 'package:parental_app/features/home/presentation/widgets/circle_status_widget.dart';
 
 class DeviceDataWidget extends StatelessWidget {
-  final int index;
-  const DeviceDataWidget({super.key, required this.index});
+  final ChildDataModel child;
+  const DeviceDataWidget({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +17,10 @@ class DeviceDataWidget extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
-        AppDialogs.showDeviceData(context);
+        AppDialogs.showDeviceData(
+          context,
+          child: child,
+        );
       },
       child: Container(
         width: sizer.wp(70),
@@ -38,7 +42,7 @@ class DeviceDataWidget extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            MockedData.usersNames[index],
+                            child.name,
                             style: AppStyles.w600(14),
                           ),
                         ),
@@ -53,7 +57,7 @@ class DeviceDataWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '16 horas de uso',
+                    AppUtils.instance.totalTimeString(child.totalTime),
                     style: AppStyles.w400(12, AppColors.gray),
                   ),
                 ],
@@ -64,7 +68,7 @@ class DeviceDataWidget extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    MockedData.devicesNames[index],
+                    child.deviceName,
                     style: AppStyles.w400(12, AppColors.lightGray),
                   ),
                 ),
