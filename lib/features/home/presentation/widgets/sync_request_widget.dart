@@ -22,12 +22,6 @@ class _SyncRequestWidgetState extends State<SyncRequestWidget> {
   bool isExpanded = false;
 
   @override
-  void initState() {
-    super.initState();
-    context.read<RequestsBloc>().add(const CallAction());
-  }
-
-  @override
   Widget build(BuildContext context) {
     return BlocListener<RequestActionsBloc, BaseScreenState<int>>(
       listener: (context, state) {

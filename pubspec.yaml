@@ -24,7 +24,9 @@ dependencies:
   device_info_plus: ^9.1.1
   usage_stats: ^1.2.0
   installed_apps: ^1.4.0
-  flutter_foreground_task: ^6.1.2
+  shared_preferences: ^2.2.2
+  workmanager: ^0.5.2
+  cached_network_image: ^3.3.1
 
 dev_dependencies:
   flutter_test:

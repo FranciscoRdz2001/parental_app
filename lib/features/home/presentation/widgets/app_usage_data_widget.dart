@@ -12,6 +12,7 @@ class AppUsageDataWidget extends StatelessWidget {
   final String package;
   final int totalTime;
   final int? devices;
+  final String? icon;
 
   const AppUsageDataWidget({
     super.key,
@@ -20,6 +21,7 @@ class AppUsageDataWidget extends StatelessWidget {
     required this.totalTime,
     required this.package,
     this.devices,
+    this.icon,
   });
 
   @override
@@ -31,6 +33,7 @@ class AppUsageDataWidget extends StatelessWidget {
           context,
           appName: appName,
           package: package,
+          icon: icon,
         );
       },
       child: Padding(
@@ -38,7 +41,15 @@ class AppUsageDataWidget extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CircleImageWidget(size: 48),
+            CircleImageWidget(
+              size: 48,
+              imageUrl: icon,
+              child: const Icon(
+                Icons.apps_outlined,
+                color: AppColors.lightGray,
+                size: 28,
+              ),
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(

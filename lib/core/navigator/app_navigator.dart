@@ -42,6 +42,10 @@ class NavigatorRouter {
     navigatorKey.currentState?.popUntil(ModalRoute.withName(routeName));
   }
 
+  static void popAll() {
+    navigatorKey.currentState?.popUntil((route) => route.isFirst);
+  }
+
   static Future<T?> pushReplacementNamed<T extends Object?, TO extends Object?>(
     String routeName, {
     TO? result,

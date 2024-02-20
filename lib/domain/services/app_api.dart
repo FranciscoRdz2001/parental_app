@@ -14,8 +14,8 @@ import 'package:parental_app/domain/models/error_response_model.dart';
 import 'package:parental_app/domain/models/server_response_model.dart';
 
 class CenterApi {
-  Map<String, String> get _headers {
-    final token = GlobalData.instance.token ?? '';
+  Map<String, String> _headers({String? customToken}) {
+    final token = customToken ?? GlobalData.instance.token ?? '';
     if (token.isEmpty) {
       return {
         'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ class CenterApi {
   }) async {
     try {
       final uri = Uri.parse('${AppConstant.apiUrl}$urlSpecific');
-      final response = await http.get(uri, headers: _headers);
+      final response = await http.get(uri, headers: _headers());
       final dataDecode = response.body != ''
           ? AppUtils.instance.getDataDecode(response.bodyBytes)
           : [];
@@ -84,7 +84,7 @@ class CenterApi {
       final uri = Uri.parse('${AppConstant.apiUrl}$urlSpecific');
       final response = await http.post(
         uri,
-        headers: _headers,
+        headers: _headers(),
         body: dataParse,
       );
 
@@ -132,13 +132,14 @@ class CenterApi {
     required String urlSpecific,
     required T Function(Map<String, dynamic>) fromJson,
     bool useNewErrorHandler = false,
+    String? customToken,
   }) async {
     try {
       final dataParse = json.encode(data);
       final uri = Uri.parse('${AppConstant.apiUrl}$urlSpecific');
       final response = await http.patch(
         uri,
-        headers: _headers,
+        headers: _headers(customToken: customToken),
         body: dataParse,
       );
 
@@ -189,7 +190,7 @@ class CenterApi {
   }) async {
     try {
       final request = http.MultipartRequest('POST', Uri.parse(urlSpecific));
-      request.headers.addAll(_headers);
+      request.headers.addAll(_headers());
       request.files.add(await http.MultipartFile.fromPath(fileField, filePath));
       for (final e in data.entries) {
         if (e.value != null) {
@@ -252,7 +253,7 @@ class CenterApi {
   }) async {
     try {
       final request = http.MultipartRequest('PATCH', Uri.parse(urlSpecific));
-      request.headers.addAll(_headers);
+      request.headers.addAll(_headers());
       request.files.add(await http.MultipartFile.fromPath(fileField, filePath));
       for (final e in data.entries) {
         if (e.value != null) {
@@ -300,7 +301,7 @@ class CenterApi {
   }) async {
     try {
       final response =
-          await http.delete(Uri.parse(urlSpecific), headers: _headers);
+          await http.delete(Uri.parse(urlSpecific), headers: _headers());
       if (response.statusCode >= 200 && response.statusCode <= 203) {
         final dataDecode = AppUtils.instance.getDataDecode(response.bodyBytes);
 

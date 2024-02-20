@@ -1,64 +1,51 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:parental_app/core/app/blocs/base/screen_base_bloc.dart';
+import 'package:parental_app/core/app/data/global_data.dart';
 import 'package:parental_app/core/app/theme/app_colors.dart';
 import 'package:parental_app/core/app/widgets/custom_button_widget.dart';
 import 'package:parental_app/core/app/widgets/custom_scaffold_widget.dart';
+import 'package:parental_app/core/utils/app_local_data_util.dart';
 import 'package:parental_app/core/utils/app_styes_util.dart';
 import 'package:parental_app/core/utils/screen_sizer_util.dart';
 import 'package:parental_app/domain/models/childs/child_info_status_model.dart';
+import 'package:parental_app/domain/services/app_api.dart';
 import 'package:parental_app/domain/services/apps_history_service.dart';
-import 'package:parental_app/features/auth/presentation/blocs/child_activity/child_activity_bloc.dart';
-import 'package:parental_app/features/auth/presentation/blocs/child_activity/params/child_activity_params.dart';
 import 'package:parental_app/features/auth/presentation/blocs/child_status/child_status_bloc.dart';
+import 'package:workmanager/workmanager.dart';
 
 enum _SyncStatus { loading, accepted, error, pending }
 
-// @pragma('vm:entry-point')
-// void startCallback() {
-//   // The setTaskHandler function must be called to handle the task in the background.
-//   FlutterForegroundTask.setTaskHandler(
-//     FirstTaskHandler(),
-//   );
-// }
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    log('Getting apps');
 
-// class FirstTaskHandler extends TaskHandler {
-//   SendPort? _sendPort;
-
-//   FirstTaskHandler();
-
-//   // Called when the task is started.
-//   @override
-//   void onStart(DateTime timestamp, SendPort? sendPort) async {
-//     _sendPort = sendPort;
-
-//     // You can use the getData function to get the stored data.
-//     //
-//   }
-
-//   // Called every [interval] milliseconds in [ForegroundTaskOptions].
-//   @override
-//   void onRepeatEvent(DateTime timestamp, SendPort? sendPort) async {
-//     final apps = await AppsHistoryService.getAppsHistory();
-//     // final context = NavigatorRouter.currentContext;
-//     // context.read<ChildActivityBloc>().add(
-//     //       CallAction(
-//     //         params: ChildActivityParams(
-//     //           apps: apps,
-//     //         ),
-//     //       ),
-//     //     );
-//     sendPort?.send(timestamp);
-//   }
-
-//   // Called when the notification button on the Android platform is pressed.
-//   @override
-//   void onDestroy(DateTime timestamp, SendPort? sendPort) async {}
-// }
+    try {
+      await AppLocalDataUtil.init();
+      final token = AppLocalDataUtil.getToken;
+      final apps = await AppsHistoryService.getAppsHistory();
+      final CenterApi api = CenterApi();
+      log('Data: $token');
+      await api.update(
+        urlSpecific: 'child/activity/today',
+        customToken: token,
+        fromJson: (p0) => p0,
+        data: {
+          'activity': apps.map((e) => e.toMap()).toList(),
+        },
+      );
+      log("Apps was sent to server");
+    } catch (e) {
+      log('Exception in background service: $e');
+    }
+    return Future.value(true);
+  });
+}
 
 class SyncStatusPage extends StatefulWidget {
   const SyncStatusPage({super.key});
@@ -74,8 +61,6 @@ class _SyncStatusPageState extends State<SyncStatusPage> {
   Color? color;
   Color? textColor;
 
-  Timer? _timer;
-
   @override
   void initState() {
     super.initState();
@@ -86,9 +71,33 @@ class _SyncStatusPageState extends State<SyncStatusPage> {
 
   @override
   void dispose() {
-    // FlutterForegroundTask.stopService();
-    _timer?.cancel();
+    Workmanager().cancelAll();
+
     super.dispose();
+  }
+
+  void initializeBackgroundService() {
+    log('Initializing background service');
+    final token = GlobalData.instance.token;
+    if (token != null) {
+      Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+      Workmanager().registerOneOffTask(
+        'task-identifier',
+        'simpleTask',
+        inputData: {'token': token},
+      );
+      Workmanager().registerPeriodicTask(
+        '2',
+        'simpleTask 2',
+        frequency: const Duration(minutes: 15),
+        inputData: {'token': token},
+        constraints: Constraints(
+          networkType: NetworkType.connected,
+        ),
+      );
+    } else {
+      log('Token is null cant initialize background service');
+    }
   }
 
   @override
@@ -125,55 +134,7 @@ class _SyncStatusPageState extends State<SyncStatusPage> {
                   ),
                 );
               });
-              FlutterForegroundTask.init(
-                androidNotificationOptions: AndroidNotificationOptions(
-                  channelId: 'foreground_service',
-                  channelName: 'Foreground Service Notification',
-                  channelDescription:
-                      'This notification appears when the foreground service is running.',
-                  channelImportance: NotificationChannelImportance.LOW,
-                  priority: NotificationPriority.LOW,
-                  iconData: const NotificationIconData(
-                    resType: ResourceType.mipmap,
-                    resPrefix: ResourcePrefix.ic,
-                    name: 'launcher',
-                  ),
-                ),
-                iosNotificationOptions: const IOSNotificationOptions(
-                  showNotification: true,
-                  playSound: false,
-                ),
-                foregroundTaskOptions: const ForegroundTaskOptions(
-                  interval: 5000,
-                  isOnceEvent: false,
-                  autoRunOnBoot: true,
-                  allowWakeLock: true,
-                  allowWifiLock: true,
-                ),
-              );
-              _timer = Timer.periodic(
-                const Duration(seconds: 5),
-                (timer) async {
-                  final apps = await AppsHistoryService.getAppsHistory();
-                  if (context.mounted) {
-                    context.read<ChildActivityBloc>().add(
-                          CallAction(
-                            params: ChildActivityParams(
-                              apps: apps,
-                            ),
-                          ),
-                        );
-                  }
-                },
-              );
-              // FlutterForegroundTask.startService(
-              //   notificationTitle: 'Parental App - Monitoreo activo',
-              //   notificationText: 'Presiona para abrir la app',
-              //   callback: startCallback,
-              // );
-
-              // Timer-
-
+              initializeBackgroundService();
               break;
             case 2:
               setState(() {

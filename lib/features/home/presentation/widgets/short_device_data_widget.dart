@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parental_app/core/app/theme/app_colors.dart';
 import 'package:parental_app/core/utils/app_styes_util.dart';
+import 'package:parental_app/core/utils/app_utils.dart';
 import 'package:parental_app/domain/models/apps/user_activity_model.dart';
 import 'package:parental_app/features/home/presentation/widgets/circle_image_widget.dart';
 
@@ -18,7 +19,14 @@ class ShortDeviceDataWidget extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CircleImageWidget(size: 48),
+          const CircleImageWidget(
+            size: 48,
+            child: Icon(
+              Icons.person_2_outlined,
+              color: AppColors.lightGray,
+              size: 28,
+            ),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -46,7 +54,7 @@ class ShortDeviceDataWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        '${userActivity.time} de uso',
+                        '${AppUtils.instance.totalTimeString(userActivity.time)} de uso',
                         style: AppStyles.w400(12, AppColors.gray),
                       ),
                     ),

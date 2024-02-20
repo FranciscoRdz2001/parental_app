@@ -55,6 +55,7 @@ class AppDialogs {
     BuildContext context, {
     required String appName,
     required String package,
+    String? icon,
   }) {
     final sizer = ScreenSizer.of(context);
     return _baseDialog(
@@ -65,6 +66,7 @@ class AppDialogs {
       content: AppDataDialog(
         appName: appName,
         package: package,
+        icon: icon,
       ),
     );
   }

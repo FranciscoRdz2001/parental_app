@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dartz/dartz.dart';
 import 'package:parental_app/domain/failures/failure.dart';
 import 'package:parental_app/domain/models/apps/most_used_app_model.dart';
@@ -30,8 +32,10 @@ class AppService extends BaseService {
     return response;
   }
 
-  Future<Either<Failure, List<UserActivityModel>>> childsByPackage(
-      {required String package}) async {
+  Future<Either<Failure, List<UserActivityModel>>> childsByPackage({
+    required String package,
+  }) async {
+    log('childsByPackage: $package');
     final response = await getMethod<List<UserActivityModel>>(
       urlSpecific: 'parent/childs/package/$package',
       fromJson: (json) => List<UserActivityModel>.from(

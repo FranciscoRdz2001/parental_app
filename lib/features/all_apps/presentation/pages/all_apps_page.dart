@@ -87,6 +87,7 @@ class _AllAppsPageState extends State<AllAppsPage> {
                             appName: state.value![x].name,
                             totalTime: state.value![x].time,
                             package: state.value?[x].package ?? '',
+                            icon: state.value?[x].icon,
                             isUserApp: true,
                           );
                         },

@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:parental_app/core/app/data/global_data.dart';
 import 'package:parental_app/domain/failures/failure.dart';
 import 'package:parental_app/domain/models/auth/child_auth_model.dart';
+import 'package:parental_app/domain/models/auth/registered_user_model.dart';
 import 'package:parental_app/domain/models/auth/user_model.dart';
 import 'package:parental_app/domain/services/base_service.dart';
 
@@ -19,6 +20,36 @@ class AuthService extends BaseService {
         'password': password,
       },
       fromJson: (json) => json['token'],
+    );
+
+    return response;
+  }
+
+  Future<Either<Failure, bool>> logout() async {
+    final response = await postMethod<bool>(
+      urlSpecific: 'auth/logout',
+      data: {},
+      fromJson: (json) => true,
+    );
+
+    return response;
+  }
+
+  Future<Either<Failure, RegisteredUserModel>> register({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+  }) async {
+    final response = await postMethod<RegisteredUserModel>(
+      urlSpecific: 'auth/register',
+      data: {
+        'email': email,
+        'password': password,
+        'firstName': firstName,
+        'lastName': lastName,
+      },
+      fromJson: (json) => RegisteredUserModel.fromJson(json),
     );
 
     return response;

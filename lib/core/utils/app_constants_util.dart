@@ -1,6 +1,6 @@
 abstract class AppConstant {
   static const String apiUrl =
-      'https://419b-187-188-59-77.ngrok-free.app/api/v1/';
+      'http://ec2-54-146-222-175.compute-1.amazonaws.com/api/v1/';
   static const String tokenExpiredMessage =
       'Sesión expirada\nPor favor, volver a iniciar sesión';
   static const String successfulGet = 'GET realizada con exito';

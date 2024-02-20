@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:parental_app/core/app/blocs/base/screen_base_bloc.dart';
-import 'package:parental_app/core/app/data/global_data.dart';
 import 'package:parental_app/core/app/theme/app_colors.dart';
 import 'package:parental_app/core/app/widgets/custom_app_name.dart';
 import 'package:parental_app/core/app/widgets/custom_button_widget.dart';
 import 'package:parental_app/core/app/widgets/custom_input_widget.dart';
 import 'package:parental_app/core/app/widgets/custom_scaffold_widget.dart';
 import 'package:parental_app/core/navigator/app_navigator.dart';
+import 'package:parental_app/core/types/session_type.dart';
+import 'package:parental_app/core/utils/app_local_data_util.dart';
 import 'package:parental_app/core/utils/app_snackbars_util.dart';
 import 'package:parental_app/core/utils/app_styes_util.dart';
 import 'package:parental_app/core/utils/inputs_validator_util.dart';
@@ -24,7 +25,7 @@ import 'package:parental_app/features/auth/presentation/blocs/user/user_bloc.dar
 import 'package:parental_app/features/auth/presentation/routes/auth_routes.dart';
 import 'package:parental_app/features/home/presentation/routes/home_routes.dart';
 
-enum LoginType { user, kid }
+enum LoginType { user, child }
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -41,6 +42,36 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     PushNotificationService.instance.requestPermission();
     AppsHistoryService.requestPermissions();
+
+    final savedSession = AppLocalDataUtil.getSessionData;
+    if (savedSession != null) {
+      if (savedSession.sessionType == SessionType.parent) {
+        context.read<LoginBloc>().add(
+              CallAction(
+                params: LoginParams(
+                  email: savedSession.email,
+                  password: savedSession.password,
+                ),
+              ),
+            );
+      } else {
+        context.read<ChildLoginBloc>().add(
+              CallAction(
+                params: ChildLoginParams(
+                  name: savedSession.email,
+                  syncCode: int.tryParse(savedSession.password) ?? 0,
+                ),
+              ),
+            );
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        AppSnackbars.success(
+          context,
+          message: 'Ingresando...',
+          description: 'Espere un momento...',
+        );
+      });
+    }
   }
 
   @override
@@ -70,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
                 unselectedLabelStyle: AppStyles.w400(12, AppColors.gray),
                 onTap: (value) {
                   setState(() {
-                    _loginType = value == 0 ? LoginType.user : LoginType.kid;
+                    _loginType = value == 0 ? LoginType.user : LoginType.child;
                   });
                 },
                 tabs: ['Padre', 'Hijo']
@@ -82,11 +113,46 @@ class _LoginPageState extends State<LoginPage> {
                     .toList(),
               ),
               const SizedBox(height: 16),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: _loginType == LoginType.user
-                    ? const _UserLoginForm()
-                    : const _KidLoginForm(),
+              BlocListener<UserBloc, BaseScreenState<UserModel>>(
+                listener: (context, state) {
+                  if (state.status.isLoaded) {
+                    NavigatorRouter.pushReplacementNamed(HomeRoutes.home);
+                  }
+                },
+                child: BlocListener<LoginBloc, BaseScreenState<String>>(
+                  listener: (context, state) {
+                    if (state.status.isLoaded) {
+                      context.read<UserBloc>().add(const CallAction());
+                    } else if (state.status.isError) {
+                      AppSnackbars.error(
+                        context,
+                        message: 'Error',
+                        description: 'La información ingresada es incorrecta',
+                      );
+                    }
+                  },
+                  child: BlocListener<ChildLoginBloc,
+                      BaseScreenState<ChildAuthModel>>(
+                    listener: (context, state) {
+                      if (state.status.isLoaded) {
+                        NavigatorRouter.pushReplacementNamed(
+                            AuthRoutes.syncStatus);
+                      } else if (state.status.isError) {
+                        AppSnackbars.error(
+                          context,
+                          message: 'Error',
+                          description: 'La información ingresada es incorrecta',
+                        );
+                      }
+                    },
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: _loginType == LoginType.user
+                          ? const _ParentLoginForm()
+                          : const _ChildLoginForm(),
+                    ),
+                  ),
+                ),
               ),
               const Spacer(),
               Center(
@@ -104,14 +170,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-class _UserLoginForm extends StatefulWidget {
-  const _UserLoginForm();
+class _ParentLoginForm extends StatefulWidget {
+  const _ParentLoginForm();
 
   @override
-  State<_UserLoginForm> createState() => _UserLoginFormState();
+  State<_ParentLoginForm> createState() => _ParentLoginFormState();
 }
 
-class _UserLoginFormState extends State<_UserLoginForm> {
+class _ParentLoginFormState extends State<_ParentLoginForm> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -141,44 +207,28 @@ class _UserLoginFormState extends State<_UserLoginForm> {
             validator: InputsValidator.validatePassword,
           ),
           const SizedBox(height: 16),
-          BlocListener<UserBloc, BaseScreenState<UserModel>>(
-            listener: (context, state) {
-              if (state.status.isLoaded) {
-                GlobalData.instance.setUser(state.value!);
-                NavigatorRouter.pushNamed(HomeRoutes.home);
+          CustomButtonWidget(
+            text: 'Iniciar sesión',
+            isLoading: context.watch<LoginBloc>().state.status.isLoading ||
+                context.watch<UserBloc>().state.status.isLoading,
+            onTap: () {
+              if (_formKey.currentState?.validate() ?? false) {
+                context.read<LoginBloc>().add(
+                      CallAction(
+                        params: LoginParams(
+                          email: _emailController.text,
+                          password: _passwordController.text,
+                        ),
+                      ),
+                    );
+              } else {
+                AppSnackbars.error(
+                  context,
+                  message: 'Error',
+                  description: 'Debes llenar todos los campos',
+                );
               }
             },
-            child: BlocListener<LoginBloc, BaseScreenState<String>>(
-              listener: (context, state) {
-                if (state.status.isLoaded) {
-                  GlobalData.instance.setToken(state.value!);
-                  context.read<UserBloc>().add(const CallAction());
-                }
-              },
-              child: CustomButtonWidget(
-                text: 'Iniciar sesión',
-                isLoading: context.watch<LoginBloc>().state.status.isLoading ||
-                    context.watch<UserBloc>().state.status.isLoading,
-                onTap: () {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    context.read<LoginBloc>().add(
-                          CallAction(
-                            params: LoginParams(
-                              email: _emailController.text,
-                              password: _passwordController.text,
-                            ),
-                          ),
-                        );
-                  } else {
-                    AppSnackbars.error(
-                      context,
-                      message: 'Error',
-                      description: 'Debes llenar todos los campos',
-                    );
-                  }
-                },
-              ),
-            ),
           ),
           const SizedBox(height: 16),
           Center(
@@ -207,14 +257,14 @@ class _UserLoginFormState extends State<_UserLoginForm> {
   }
 }
 
-class _KidLoginForm extends StatefulWidget {
-  const _KidLoginForm();
+class _ChildLoginForm extends StatefulWidget {
+  const _ChildLoginForm();
 
   @override
-  State<_KidLoginForm> createState() => _KidLoginFormState();
+  State<_ChildLoginForm> createState() => _ChildLoginFormState();
 }
 
-class _KidLoginFormState extends State<_KidLoginForm> {
+class _ChildLoginFormState extends State<_ChildLoginForm> {
   final _formKey = GlobalKey<FormState>();
   final _codeController = TextEditingController();
   final _nameController = TextEditingController();
@@ -243,47 +293,31 @@ class _KidLoginFormState extends State<_KidLoginForm> {
             validator: InputsValidator.validateNotEmpty,
           ),
           const SizedBox(height: 16),
-          BlocListener<ChildLoginBloc, BaseScreenState<ChildAuthModel>>(
-            listener: (context, state) {
-              if (state.status.isLoaded) {
-                GlobalData.instance.setChild(state.value!);
-                GlobalData.instance.setToken(state.value!.token);
-                NavigatorRouter.pushNamed(AuthRoutes.syncStatus);
-              } else if (state.status.isError) {
-                AppSnackbars.error(
-                  context,
-                  message: 'Error',
-                  description: 'La información ingresada es incorrecta',
-                );
-              }
-            },
-            child: BlocBuilder<ChildLoginBloc, BaseScreenState<ChildAuthModel>>(
-              builder: (context, state) {
-                return CustomButtonWidget(
-                  text: 'Iniciar sesión',
-                  isLoading: state.status.isLoading,
-                  onTap: () {
-                    if (_formKey.currentState?.validate() ?? false) {
-                      context.read<ChildLoginBloc>().add(
-                            CallAction(
-                              params: ChildLoginParams(
-                                name: _nameController.text,
-                                syncCode:
-                                    int.tryParse(_codeController.text) ?? 0,
-                              ),
+          BlocBuilder<ChildLoginBloc, BaseScreenState<ChildAuthModel>>(
+            builder: (context, state) {
+              return CustomButtonWidget(
+                text: 'Iniciar sesión',
+                isLoading: state.status.isLoading,
+                onTap: () {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    context.read<ChildLoginBloc>().add(
+                          CallAction(
+                            params: ChildLoginParams(
+                              name: _nameController.text,
+                              syncCode: int.tryParse(_codeController.text) ?? 0,
                             ),
-                          );
-                    } else {
-                      AppSnackbars.error(
-                        context,
-                        message: 'Error',
-                        description: 'Debes llenar todos los campos',
-                      );
-                    }
-                  },
-                );
-              },
-            ),
+                          ),
+                        );
+                  } else {
+                    AppSnackbars.error(
+                      context,
+                      message: 'Error',
+                      description: 'Debes llenar todos los campos',
+                    );
+                  }
+                },
+              );
+            },
           ),
         ],
       ),

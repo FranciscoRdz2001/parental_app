@@ -58,6 +58,10 @@ class AppUtils {
     final formattedHour = hours == 0 ? '' : '$hours h ';
     final formattedMinutes = minutes % 60 == 0 ? '' : '${minutes % 60} min ';
     final formattedSeconds = seconds == 0 ? '' : '$seconds sec ';
+    final completed = formattedHour + formattedMinutes + formattedSeconds;
+    if (completed.isEmpty) {
+      return 'Sin uso';
+    }
     return '$formattedHour$formattedMinutes${formattedSeconds}de uso';
   }
 }

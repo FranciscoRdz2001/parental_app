@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:parental_app/core/app/blocs/base/screen_base_bloc.dart';
+import 'package:parental_app/core/app/theme/app_colors.dart';
 import 'package:parental_app/core/app/widgets/custom_button_widget.dart';
 import 'package:parental_app/core/app/widgets/custom_shimmer.dart';
 import 'package:parental_app/core/app/widgets/custom_state_switcher_widget.dart';
@@ -16,8 +17,13 @@ import 'package:parental_app/features/home/presentation/widgets/short_device_dat
 class AppDataDialog extends StatefulWidget {
   final String appName;
   final String package;
-  const AppDataDialog(
-      {super.key, required this.appName, required this.package});
+  final String? icon;
+  const AppDataDialog({
+    super.key,
+    required this.appName,
+    required this.package,
+    this.icon,
+  });
 
   @override
   State<AppDataDialog> createState() => _AppDataDialogState();
@@ -59,7 +65,9 @@ class _AppDataDialogState extends State<AppDataDialog> {
                     BaseScreenState<List<UserActivityModel>>>(
                   builder: (context, state) {
                     return CustomStateSwitcher(
-                      isLoading: !state.status.isLoaded,
+                      isLoading: state.status.isLoading,
+                      hasError: state.status.isError,
+                      errorWidget: const SizedBox(),
                       loadingWidget: const CustomShimmer(
                         width: double.infinity,
                         height: 14,
@@ -77,7 +85,24 @@ class _AppDataDialogState extends State<AppDataDialog> {
                   BaseScreenState<List<UserActivityModel>>>(
                 builder: (context, state) {
                   return CustomStateSwitcher(
-                    isLoading: !state.status.isLoaded,
+                    isLoading: state.status.isLoading,
+                    hasError: state.status.isError,
+                    errorWidget: Center(
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            color: AppColors.lightGray,
+                            size: 32,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No se pudo cargar la información',
+                            style: AppStyles.w400(12, AppColors.lightGray),
+                          ),
+                        ],
+                      ),
+                    ),
                     loadingWidget: const AllUserAppsPlaceholder(
                       items: 2,
                     ),
@@ -107,9 +132,18 @@ class _AppDataDialogState extends State<AppDataDialog> {
             NavigatorRouter.pop();
           },
         ),
-        const Positioned(
+        Positioned(
           top: -76,
-          child: CircleImageWidget(size: 84),
+          child: CircleImageWidget(
+            size: 84,
+            imageUrl: widget.icon,
+            child: const Icon(
+              Icons.apps_outlined,
+              color: AppColors.lightGray,
+              size: 28,
+            ),
+          ),
+          // child: CircleImageWidget(size: 84),
         ),
       ],
     );

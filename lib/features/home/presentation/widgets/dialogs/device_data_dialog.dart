@@ -98,22 +98,6 @@ class DeviceDataDialog extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Dispositivos',
-                          style: AppStyles.w400(12, AppColors.gray),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        '5',
-                        style: AppStyles.w400(12, AppColors.gray),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),

@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 
 class CustomScaffoldWidget extends StatelessWidget {
+  final GlobalKey<ScaffoldState>? scaffoldKey;
   final bool hasScroll;
   final Widget child;
+  final Widget? drawer;
   final Widget? persistentFooterButton;
   final EdgeInsets padding;
   const CustomScaffoldWidget({
     super.key,
     required this.child,
+    this.scaffoldKey,
     this.hasScroll = false,
     this.persistentFooterButton,
+    this.drawer,
     this.padding = const EdgeInsets.fromLTRB(16, 16, 16, 0),
   });
 
@@ -36,6 +40,8 @@ class CustomScaffoldWidget extends StatelessWidget {
         ),
       ),
       child: Scaffold(
+        key: scaffoldKey,
+        drawer: drawer,
         resizeToAvoidBottomInset: false,
         extendBody: true,
         persistentFooterButtons: [

@@ -31,9 +31,12 @@ class AppsHistoryService {
 
       final filteredList = usageStats
           .where(
-            (element) => !_systemPackages.any(
-              (package) => element.packageName?.contains(package) ?? false,
-            ),
+            (element) =>
+                !_systemPackages.any(
+                  (package) => element.packageName?.contains(package) ?? false,
+                ) &&
+                (int.tryParse(element.totalTimeInForeground ?? '0') ?? 0) >
+                    (300 * 1000),
           )
           .toList();
 
@@ -47,9 +50,7 @@ class AppsHistoryService {
         final time =
             (int.tryParse(infoList[i].totalTimeInForeground ?? '0') ?? 0) /
                 1000;
-        if (infoList[i].packageName == 'com.example.parental_app') {
-          log(time.toString());
-        }
+
         list.add(
           AppActivityModel(
             package: infoList[i].packageName!,
